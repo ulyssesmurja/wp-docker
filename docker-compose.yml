@@ -1,0 +1,59 @@
+version: '3.3'
+
+services:
+
+  database:
+    container_name: database
+    image: mariadb:latest
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      -  ./mariadb/:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: replace_here
+      MYSQL_DATABASE: replace_here
+      MYSQL_USER: replace_here
+      MYSQL_PASSWORD: replace_here
+    networks:
+      - wordpress-network
+
+  wp:
+    container_name: wp
+    image: wordpress:latest
+    volumes:
+      -  ./public/:/var/www/html
+    environment:
+      VIRTUAL_HOST: replace_here
+      VIRTUAL_PORT: "127.0.0.1:80:80"
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: replace_here
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DB_PASSWORD: replace_here
+    ports:
+      - "127.0.0.1:80:80"
+    links:
+      - database
+    restart: always
+    networks:
+      - wordpress-network
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "127.0.0.1:8080:80"
+    links:
+      - database
+    restart: always
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=database
+    volumes:
+      - /sessions
+    networks:
+      - wordpress-network
+
+networks:
+  wordpress-network:
+      driver: bridge
